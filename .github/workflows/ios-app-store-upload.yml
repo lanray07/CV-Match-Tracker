@@ -1,0 +1,143 @@
+name: iOS App Store Archive Upload
+
+on:
+  workflow_dispatch:
+
+jobs:
+  archive-and-upload:
+    name: Archive and upload to App Store Connect
+    runs-on: macos-15
+
+    env:
+      APP_SCHEME: CVMatchTracker
+      APP_PROJECT: CVMatchTracker.xcodeproj
+      BUNDLE_ID: com.lanray07.cvmatchtracker
+      ARCHIVE_PATH: ${{ runner.temp }}/CVMatchTracker.xcarchive
+      EXPORT_PATH: ${{ runner.temp }}/app-store-export
+      KEYCHAIN_PATH: ${{ runner.temp }}/app-signing.keychain-db
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Validate required secrets
+        run: |
+          test -n "${{ secrets.APPLE_TEAM_ID }}"
+          test -n "${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}"
+          test -n "${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}"
+          test -n "${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}"
+          test -n "${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}"
+          test -n "${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}"
+          test -n "${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}"
+
+      - name: Install signing certificate and provisioning profile
+        env:
+          CERTIFICATE_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
+          PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+        run: |
+          set -euo pipefail
+
+          CERTIFICATE_PATH="$RUNNER_TEMP/distribution.p12"
+          PROFILE_PATH="$RUNNER_TEMP/profile.mobileprovision"
+          PROFILE_PLIST="$RUNNER_TEMP/profile.plist"
+
+          echo "$CERTIFICATE_BASE64" | base64 --decode > "$CERTIFICATE_PATH"
+          echo "$PROFILE_BASE64" | base64 --decode > "$PROFILE_PATH"
+
+          security create-keychain -p "" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "" "$KEYCHAIN_PATH"
+          security import "$CERTIFICATE_PATH" -P "$CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          security cms -D -i "$PROFILE_PATH" > "$PROFILE_PLIST"
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print :UUID" "$PROFILE_PLIST")
+          PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print :Name" "$PROFILE_PLIST")
+          cp "$PROFILE_PATH" "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
+
+          {
+            echo "PROFILE_UUID=$PROFILE_UUID"
+            echo "PROFILE_NAME=$PROFILE_NAME"
+          } >> "$GITHUB_ENV"
+
+      - name: Archive signed app
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project "$APP_PROJECT" \
+            -scheme "$APP_SCHEME" \
+            -configuration Release \
+            -destination "generic/platform=iOS" \
+            -archivePath "$ARCHIVE_PATH" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            CURRENT_PROJECT_VERSION="$GITHUB_RUN_NUMBER" \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            PROVISIONING_PROFILE="$PROFILE_UUID" \
+            clean archive
+
+      - name: Create export options
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store-connect</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>teamID</key>
+            <string>$APPLE_TEAM_ID</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>$BUNDLE_ID</key>
+              <string>$PROFILE_NAME</string>
+            </dict>
+            <key>uploadBitcode</key>
+            <false/>
+            <key>uploadSymbols</key>
+            <true/>
+          </dict>
+          </plist>
+          EOF
+
+      - name: Export IPA
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -exportArchive \
+            -archivePath "$ARCHIVE_PATH" \
+            -exportPath "$EXPORT_PATH" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist"
+
+      - name: Install App Store Connect API key
+        env:
+          API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          API_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
+        run: |
+          mkdir -p "$HOME/.appstoreconnect/private_keys"
+          printf "%s" "$API_PRIVATE_KEY" > "$HOME/.appstoreconnect/private_keys/AuthKey_${API_KEY_ID}.p8"
+
+      - name: Upload IPA to App Store Connect
+        env:
+          API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+        run: |
+          IPA_PATH=$(find "$EXPORT_PATH" -name "*.ipa" -print -quit)
+          test -n "$IPA_PATH"
+          xcrun altool \
+            --upload-app \
+            --type ios \
+            --file "$IPA_PATH" \
+            --apiKey "$API_KEY_ID" \
+            --apiIssuer "$API_ISSUER_ID"
