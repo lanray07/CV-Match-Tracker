@@ -14,5 +14,6 @@ CV Match Tracker is a SwiftUI iOS app for job applicants who need to identify th
 
 - Xcode 15 or newer.
 - iOS 17 or newer.
+- Bundle ID: `com.lanray07.cvmatchtracker`.
 
 Open `CVMatchTracker.xcodeproj`, choose an iOS simulator, and run the `CVMatchTracker` scheme.
