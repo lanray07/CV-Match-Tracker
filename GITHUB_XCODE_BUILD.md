@@ -1,6 +1,6 @@
 # GitHub Xcode Build
 
-This repository can use GitHub-hosted macOS runners to build CV Match Tracker with Xcode.
+This repository can use GitHub-hosted macOS 26 runners to build CV Match Tracker with Xcode 26.
 
 ## Simulator Build
 
@@ -26,7 +26,7 @@ Add these GitHub repository secrets before running it:
 - `APP_STORE_CONNECT_API_ISSUER_ID`
 - `APP_STORE_CONNECT_API_PRIVATE_KEY`
 
-The workflow uses Xcode automatic signing on GitHub's macOS runner. It archives without development signing, then lets Xcode sign the exported App Store IPA with the App Store Connect API key. The App Store Connect private key should be the full `.p8` key contents, including the `BEGIN PRIVATE KEY` and `END PRIVATE KEY` lines.
+The workflow uses Xcode automatic signing on GitHub's macOS 26 runner so the exported app is built with the iOS 26 SDK required by App Store Connect. It archives without development signing, then lets Xcode sign the exported App Store IPA with the App Store Connect API key. The App Store Connect private key should be the full `.p8` key contents, including the `BEGIN PRIVATE KEY` and `END PRIVATE KEY` lines.
 
 If the upload fails during signing, confirm the App Store Connect API key has enough access to manage signing for the Apple Developer team and that `APPLE_TEAM_ID` matches the team that owns `com.lanray07.cvmatchtracker`.
 
