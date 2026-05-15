@@ -3,7 +3,6 @@ import SwiftUI
 
 struct ApplicationsView: View {
     @Query(sort: \ApplicationRecord.dateApplied, order: .reverse) private var applications: [ApplicationRecord]
-    @AppStorage("isPremiumUnlocked") private var isPremiumUnlocked = false
 
     @State private var searchText = ""
     @State private var statusFilter = "All"
@@ -11,7 +10,7 @@ struct ApplicationsView: View {
     @State private var isSubscriptionPresented = false
 
     private var canAddApplication: Bool {
-        isPremiumUnlocked || applications.count < PremiumLimits.freeApplicationLimit
+        PremiumAccess.isUnlocked || applications.count < PremiumLimits.freeApplicationLimit
     }
 
     private var filteredApplications: [ApplicationRecord] {
@@ -116,10 +115,10 @@ struct ApplicationsView: View {
         VStack(alignment: .leading, spacing: 10) {
             Label("Free limit reached", systemImage: "lock.fill")
                 .font(.headline)
-            Text("Free users can track \(PremiumLimits.freeApplicationLimit) applications. Premium unlocks unlimited tracking.")
+            Text("Free users can track \(PremiumLimits.freeApplicationLimit) applications. A future Premium release is planned for unlimited tracking.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-            Button("View Premium") {
+            Button("View Roadmap") {
                 isSubscriptionPresented = true
             }
             .buttonStyle(.borderedProminent)

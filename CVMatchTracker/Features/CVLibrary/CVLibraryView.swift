@@ -4,13 +4,12 @@ import SwiftUI
 struct CVLibraryView: View {
     @Query(sort: \CVDocument.createdAt, order: .reverse) private var cvDocuments: [CVDocument]
     @Query(sort: \ApplicationRecord.dateApplied, order: .reverse) private var applications: [ApplicationRecord]
-    @AppStorage("isPremiumUnlocked") private var isPremiumUnlocked = false
 
     @State private var isAddCVPresented = false
     @State private var isSubscriptionPresented = false
 
     private var canAddCV: Bool {
-        isPremiumUnlocked || cvDocuments.count < PremiumLimits.freeCVLimit
+        PremiumAccess.isUnlocked || cvDocuments.count < PremiumLimits.freeCVLimit
     }
 
     var body: some View {
@@ -87,10 +86,10 @@ struct CVLibraryView: View {
         VStack(alignment: .leading, spacing: 10) {
             Label("Free CV limit reached", systemImage: "lock.fill")
                 .font(.headline)
-            Text("Free users can store \(PremiumLimits.freeCVLimit) CV versions. Premium unlocks unlimited uploads.")
+            Text("Free users can store \(PremiumLimits.freeCVLimit) CV versions. A future Premium release is planned for unlimited uploads.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-            Button("View Premium") {
+            Button("View Roadmap") {
                 isSubscriptionPresented = true
             }
             .buttonStyle(.borderedProminent)
@@ -152,7 +151,6 @@ struct AddCVView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \CVDocument.createdAt, order: .reverse) private var cvDocuments: [CVDocument]
-    @AppStorage("isPremiumUnlocked") private var isPremiumUnlocked = false
 
     @State private var name = ""
     @State private var summary = ""
@@ -160,7 +158,7 @@ struct AddCVView: View {
     @State private var errorMessage: String?
 
     private var canAddCV: Bool {
-        isPremiumUnlocked || cvDocuments.count < PremiumLimits.freeCVLimit
+        PremiumAccess.isUnlocked || cvDocuments.count < PremiumLimits.freeCVLimit
     }
 
     private var canSave: Bool {
@@ -173,7 +171,7 @@ struct AddCVView: View {
                 Section {
                     PremiumLockView(
                         title: "Free CV limit reached",
-                        message: "Premium unlocks unlimited CV versions for tailored applications."
+                        message: "A future Premium release is planned for unlimited CV versions."
                     )
                 }
             }

@@ -5,13 +5,12 @@ struct DashboardView: View {
     @Query(sort: \ApplicationRecord.dateApplied, order: .reverse) private var applications: [ApplicationRecord]
     @Query(sort: \Reminder.dueDate, order: .forward) private var reminders: [Reminder]
 
-    @AppStorage("isPremiumUnlocked") private var isPremiumUnlocked = false
     @State private var searchText = ""
     @State private var isAddApplicationPresented = false
     @State private var isSubscriptionPresented = false
 
     private var canAddApplication: Bool {
-        isPremiumUnlocked || applications.count < PremiumLimits.freeApplicationLimit
+        PremiumAccess.isUnlocked || applications.count < PremiumLimits.freeApplicationLimit
     }
 
     private var upcomingReminders: [Reminder] {

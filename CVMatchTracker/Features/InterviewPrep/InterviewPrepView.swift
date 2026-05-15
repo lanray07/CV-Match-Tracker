@@ -3,7 +3,6 @@ import SwiftUI
 
 struct InterviewPrepView: View {
     let application: ApplicationRecord
-    @AppStorage("isPremiumUnlocked") private var isPremiumUnlocked = false
 
     private var prep: InterviewPrep {
         InterviewPrepGenerator.generate(for: application)
@@ -20,7 +19,7 @@ struct InterviewPrepView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                if isPremiumUnlocked {
+                if PremiumAccess.isUnlocked {
                     prepSection("Summary of CV sent", systemImage: "doc.richtext.fill", text: prep.cvSummary)
                     prepBullets("Key points to mention", systemImage: "quote.bubble.fill", items: prep.keyPoints)
                     prepBullets("Likely interview questions", systemImage: "questionmark.bubble.fill", items: prep.likelyQuestions)
@@ -28,14 +27,14 @@ struct InterviewPrepView: View {
                     prepSection("Quick notes before the call", systemImage: "phone.fill", text: prep.quickNotes)
                 } else {
                     PremiumLockView(
-                        title: "AI interview prep is Premium",
-                        message: "Premium will unlock tailored CV summaries, talking points, likely questions, and role gap checks."
+                        title: "Interview prep is coming soon",
+                        message: "A future Premium release will unlock tailored CV summaries, talking points, likely questions, and role gap checks."
                     )
 
                     NavigationLink {
                         SubscriptionView()
                     } label: {
-                        Label("View Premium", systemImage: "sparkles")
+                        Label("View Premium Roadmap", systemImage: "sparkles")
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)

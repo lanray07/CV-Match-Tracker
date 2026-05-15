@@ -9,8 +9,6 @@ struct ApplicationFormView: View {
     @Query(sort: \CVDocument.createdAt, order: .reverse) private var cvDocuments: [CVDocument]
     @Query(sort: \CoverLetterDocument.createdAt, order: .reverse) private var coverLetters: [CoverLetterDocument]
 
-    @AppStorage("isPremiumUnlocked") private var isPremiumUnlocked = false
-
     @State private var companyName = ""
     @State private var jobTitle = ""
     @State private var location = ""
@@ -34,11 +32,11 @@ struct ApplicationFormView: View {
     }
 
     private var canCreateApplication: Bool {
-        isPremiumUnlocked || applications.count < PremiumLimits.freeApplicationLimit
+        PremiumAccess.isUnlocked || applications.count < PremiumLimits.freeApplicationLimit
     }
 
     private var canImportNewCV: Bool {
-        isPremiumUnlocked || cvDocuments.count < PremiumLimits.freeCVLimit
+        PremiumAccess.isUnlocked || cvDocuments.count < PremiumLimits.freeCVLimit
     }
 
     var body: some View {
@@ -47,7 +45,7 @@ struct ApplicationFormView: View {
                 Section {
                     PremiumLockView(
                         title: "Free application limit reached",
-                        message: "Free users can track \(PremiumLimits.freeApplicationLimit) applications. Upgrade to keep adding roles."
+                        message: "Free users can track \(PremiumLimits.freeApplicationLimit) applications in version 1.0."
                     )
                 }
             }
@@ -98,7 +96,7 @@ struct ApplicationFormView: View {
                 .disabled(!canImportNewCV)
 
                 if !canImportNewCV {
-                    Text("Free users can store \(PremiumLimits.freeCVLimit) CV versions. Select an existing CV or upgrade for unlimited uploads.")
+                    Text("Free users can store \(PremiumLimits.freeCVLimit) CV versions. Select an existing CV or use the future Premium roadmap for unlimited uploads.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -166,12 +164,12 @@ struct ApplicationFormView: View {
         errorMessage = nil
 
         guard canCreateApplication else {
-            errorMessage = "Upgrade to Premium to add more applications."
+            errorMessage = "The free version can track up to \(PremiumLimits.freeApplicationLimit) applications."
             return
         }
 
         guard canImportNewCV || importedCV == nil else {
-            errorMessage = "Select an existing CV or upgrade to upload more CV versions."
+            errorMessage = "Select an existing CV or wait for a future Premium release to upload more CV versions."
             return
         }
 

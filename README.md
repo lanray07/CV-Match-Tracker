@@ -8,7 +8,8 @@ CV Match Tracker is a SwiftUI iOS app for job applicants who need to identify th
 - SwiftData local persistence for applications, CVs, cover letters, recruiters, reminders, and timeline events.
 - Offline-first sample demo data with generated PDF files for preview.
 - Freemium limits: 15 applications and 3 CV versions for free users.
-- Premium placeholder UI for unlimited tracking, AI interview prep, iCloud sync, and PDF export.
+- Premium roadmap UI for unlimited tracking, AI interview prep, iCloud sync, and PDF export. Purchases are not enabled in version 1.0.
+- Privacy manifest and export-compliance metadata for App Store upload.
 
 ## Requirements
 
@@ -17,3 +18,5 @@ CV Match Tracker is a SwiftUI iOS app for job applicants who need to identify th
 - Bundle ID: `com.lanray07.cvmatchtracker`.
 
 Open `CVMatchTracker.xcodeproj`, choose an iOS simulator, and run the `CVMatchTracker` scheme.
+
+See `APP_STORE_CHECKLIST.md` for App Store Connect metadata and review notes.

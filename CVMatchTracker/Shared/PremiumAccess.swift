@@ -5,6 +5,11 @@ enum PremiumLimits {
     static let freeCVLimit = 3
 }
 
+enum PremiumAccess {
+    static let isUnlocked = false
+    static let isAvailable = false
+}
+
 enum PremiumFeature: String, CaseIterable, Identifiable {
     case unlimitedApplications = "Unlimited applications"
     case unlimitedCVs = "Unlimited CV uploads"
@@ -21,7 +26,7 @@ enum PremiumFeature: String, CaseIterable, Identifiable {
         case .unlimitedCVs:
             return "Keep specialist, senior, graduate, contract, and sector-specific versions."
         case .interviewPrep:
-            return "Generate talking points, likely questions, and CV-to-role gaps."
+            return "Planned talking points, likely questions, and CV-to-role gap checks."
         case .iCloudSync:
             return "Future sync across iPhone, iPad, and Mac."
         case .pdfExport:

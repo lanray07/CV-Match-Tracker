@@ -4,24 +4,23 @@ import SwiftUI
 struct SettingsView: View {
     @Query private var applications: [ApplicationRecord]
     @Query private var cvDocuments: [CVDocument]
-    @AppStorage("isPremiumUnlocked") private var isPremiumUnlocked = false
 
     var body: some View {
         List {
             Section {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
-                        Label(isPremiumUnlocked ? "Premium preview active" : "Free plan", systemImage: isPremiumUnlocked ? "sparkles" : "person.crop.circle")
+                        Label("Free plan", systemImage: "person.crop.circle")
                             .font(.headline)
                         Spacer()
-                        Text(isPremiumUnlocked ? "Premium" : "Free")
+                        Text("Free")
                             .font(.caption.weight(.semibold))
-                            .foregroundStyle(isPremiumUnlocked ? .green : .secondary)
+                            .foregroundStyle(.secondary)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
                             .background(
                                 Capsule()
-                                    .fill((isPremiumUnlocked ? Color.green : Color.secondary).opacity(0.12))
+                                    .fill(Color.secondary.opacity(0.12))
                             )
                     }
 
@@ -32,7 +31,7 @@ struct SettingsView: View {
                     NavigationLink {
                         SubscriptionView()
                     } label: {
-                        Label("Manage subscription", systemImage: "creditcard.fill")
+                        Label("View Premium roadmap", systemImage: "sparkles")
                     }
                 }
                 .padding(.vertical, 6)
@@ -41,12 +40,12 @@ struct SettingsView: View {
             Section("Usage") {
                 SettingsUsageRow(
                     title: "Applications",
-                    value: isPremiumUnlocked ? "\(applications.count) / Unlimited" : "\(applications.count) / \(PremiumLimits.freeApplicationLimit)",
+                    value: "\(applications.count) / \(PremiumLimits.freeApplicationLimit)",
                     systemImage: "folder.fill"
                 )
                 SettingsUsageRow(
                     title: "CV versions",
-                    value: isPremiumUnlocked ? "\(cvDocuments.count) / Unlimited" : "\(cvDocuments.count) / \(PremiumLimits.freeCVLimit)",
+                    value: "\(cvDocuments.count) / \(PremiumLimits.freeCVLimit)",
                     systemImage: "doc.richtext.fill"
                 )
             }
@@ -55,7 +54,7 @@ struct SettingsView: View {
                 ForEach(PremiumFeature.allCases) { feature in
                     HStack(spacing: 12) {
                         Image(systemName: feature.symbolName)
-                            .foregroundStyle(isPremiumUnlocked ? .green : .secondary)
+                            .foregroundStyle(.secondary)
                             .frame(width: 24)
 
                         VStack(alignment: .leading, spacing: 2) {
@@ -67,8 +66,9 @@ struct SettingsView: View {
 
                         Spacer(minLength: 8)
 
-                        Image(systemName: isPremiumUnlocked ? "checkmark.circle.fill" : "lock.fill")
-                            .foregroundStyle(isPremiumUnlocked ? .green : .secondary)
+                        Text("Planned")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.secondary)
                     }
                 }
             }
@@ -102,15 +102,14 @@ private struct SettingsUsageRow: View {
 
 struct SubscriptionView: View {
     @Environment(\.dismiss) private var dismiss
-    @AppStorage("isPremiumUnlocked") private var isPremiumUnlocked = false
 
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 18) {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("CV Match Tracker Premium")
+                    Text("Premium Roadmap")
                         .font(.largeTitle.weight(.bold))
-                    Text("Unlock the full offline workflow now, with iCloud sync and export planned for a later release.")
+                    Text("Premium features are planned for a future release. There is no purchase flow in this version.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -138,12 +137,11 @@ struct SubscriptionView: View {
                 .premiumCard()
 
                 VStack(alignment: .leading, spacing: 10) {
-                    Label("Payment integration placeholder", systemImage: "creditcard")
+                    Label("No purchase required", systemImage: "checkmark.seal.fill")
                         .font(.headline)
-                    Text("No App Store purchase flow is connected in this version. The toggle below lets you preview locked Premium UI while testing locally.")
+                    Text("This App Store build works offline with the free limits shown above. In-app purchases and subscriptions are not enabled in version 1.0.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
-                    Toggle("Preview Premium access", isOn: $isPremiumUnlocked)
                 }
                 .padding(16)
                 .premiumCard()
@@ -151,7 +149,7 @@ struct SubscriptionView: View {
             .padding()
         }
         .background(Color(.systemGroupedBackground))
-        .navigationTitle("Subscription")
+        .navigationTitle("Premium Roadmap")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
