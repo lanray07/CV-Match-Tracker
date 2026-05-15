@@ -12,9 +12,6 @@ jobs:
       APP_SCHEME: CVMatchTracker
       APP_PROJECT: CVMatchTracker.xcodeproj
       BUNDLE_ID: com.lanray07.cvmatchtracker
-      ARCHIVE_PATH: ${{ runner.temp }}/CVMatchTracker.xcarchive
-      EXPORT_PATH: ${{ runner.temp }}/app-store-export
-      KEYCHAIN_PATH: ${{ runner.temp }}/app-signing.keychain-db
 
     steps:
       - name: Checkout
@@ -48,6 +45,7 @@ jobs:
           echo "$CERTIFICATE_BASE64" | base64 --decode > "$CERTIFICATE_PATH"
           echo "$PROFILE_BASE64" | base64 --decode > "$PROFILE_PATH"
 
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
           security create-keychain -p "" "$KEYCHAIN_PATH"
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
           security unlock-keychain -p "" "$KEYCHAIN_PATH"
@@ -75,7 +73,7 @@ jobs:
             -scheme "$APP_SCHEME" \
             -configuration Release \
             -destination "generic/platform=iOS" \
-            -archivePath "$ARCHIVE_PATH" \
+            -archivePath "$RUNNER_TEMP/CVMatchTracker.xcarchive" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
             CURRENT_PROJECT_VERSION="$GITHUB_RUN_NUMBER" \
             CODE_SIGN_STYLE=Manual \
@@ -116,8 +114,8 @@ jobs:
           set -o pipefail
           xcodebuild \
             -exportArchive \
-            -archivePath "$ARCHIVE_PATH" \
-            -exportPath "$EXPORT_PATH" \
+            -archivePath "$RUNNER_TEMP/CVMatchTracker.xcarchive" \
+            -exportPath "$RUNNER_TEMP/app-store-export" \
             -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist"
 
       - name: Install App Store Connect API key
@@ -133,7 +131,7 @@ jobs:
           API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
         run: |
-          IPA_PATH=$(find "$EXPORT_PATH" -name "*.ipa" -print -quit)
+          IPA_PATH=$(find "$RUNNER_TEMP/app-store-export" -name "*.ipa" -print -quit)
           test -n "$IPA_PATH"
           xcrun altool \
             --upload-app \
