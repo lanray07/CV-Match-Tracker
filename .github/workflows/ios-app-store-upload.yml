@@ -23,87 +23,36 @@ jobs:
       - name: Validate required secrets
         run: |
           test -n "${{ secrets.APPLE_TEAM_ID }}"
-          test -n "${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}"
-          test -n "${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}"
-          test -n "${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}"
           test -n "${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}"
           test -n "${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}"
           test -n "${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}"
 
-      - name: Install signing certificate and provisioning profile
+      - name: Install App Store Connect API key
         env:
-          CERTIFICATE_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
-          CERTIFICATE_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
-          PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+          API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          API_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
         run: |
           set -euo pipefail
 
-          decode_secret_file() {
-            local secret_value="$1"
-            local output_path="$2"
-            local secret_name="$3"
+          API_KEY_DIR="$HOME/.appstoreconnect/private_keys"
+          API_KEY_PATH="$API_KEY_DIR/AuthKey_${API_KEY_ID}.p8"
 
-            if ! printf "%s" "$secret_value" | base64 --decode > "$output_path" 2>/tmp/base64-error.log; then
-              if ! printf "%s" "$secret_value" | base64 -D > "$output_path" 2>>/tmp/base64-error.log; then
-                echo "::error::$secret_name is not valid base64. Encode the original Apple file, then paste that base64 text into the GitHub secret."
-                cat /tmp/base64-error.log
-                exit 1
-              fi
-            fi
+          mkdir -p "$API_KEY_DIR"
+          printf "%s" "$API_PRIVATE_KEY" > "$API_KEY_PATH"
+          chmod 600 "$API_KEY_PATH"
 
-            if [ ! -s "$output_path" ]; then
-              echo "::error::$secret_name decoded to an empty file."
-              exit 1
-            fi
-          }
-
-          CERTIFICATE_PATH="$RUNNER_TEMP/distribution.p12"
-          PROFILE_PATH="$RUNNER_TEMP/profile.mobileprovision"
-          PROFILE_PLIST="$RUNNER_TEMP/profile.plist"
-
-          decode_secret_file "$CERTIFICATE_BASE64" "$CERTIFICATE_PATH" "IOS_DISTRIBUTION_CERTIFICATE_BASE64"
-          decode_secret_file "$PROFILE_BASE64" "$PROFILE_PATH" "IOS_PROVISIONING_PROFILE_BASE64"
-
-          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
-          security create-keychain -p "" "$KEYCHAIN_PATH"
-          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
-          security unlock-keychain -p "" "$KEYCHAIN_PATH"
-
-          if ! security import "$CERTIFICATE_PATH" -P "$CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"; then
-            echo "::error::Could not import IOS_DISTRIBUTION_CERTIFICATE_BASE64. It must be a base64-encoded Apple Distribution .p12 file, and IOS_DISTRIBUTION_CERTIFICATE_PASSWORD must match the .p12 export password."
+          if ! grep -q "BEGIN PRIVATE KEY" "$API_KEY_PATH"; then
+            echo "::error::APP_STORE_CONNECT_API_PRIVATE_KEY must contain the full .p8 private key text, including BEGIN PRIVATE KEY and END PRIVATE KEY."
             exit 1
           fi
 
-          security set-key-partition-list -S apple-tool:,apple: -s -k "" "$KEYCHAIN_PATH"
-          security list-keychain -d user -s "$KEYCHAIN_PATH"
-          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
-
-          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
-          if ! security cms -D -i "$PROFILE_PATH" > "$PROFILE_PLIST"; then
-            echo "::error::IOS_PROVISIONING_PROFILE_BASE64 is not a valid base64-encoded .mobileprovision file."
-            exit 1
-          fi
-
-          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print :UUID" "$PROFILE_PLIST")
-          PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print :Name" "$PROFILE_PLIST")
-          PROFILE_APP_ID=$(/usr/libexec/PlistBuddy -c "Print :Entitlements:application-identifier" "$PROFILE_PLIST")
-          PROFILE_BUNDLE_ID="${PROFILE_APP_ID#*.}"
-
-          if [ "$PROFILE_BUNDLE_ID" != "$BUNDLE_ID" ]; then
-            echo "::error::IOS_PROVISIONING_PROFILE_BASE64 is for bundle '$PROFILE_BUNDLE_ID', but this app needs '$BUNDLE_ID'. Create an App Store provisioning profile for $BUNDLE_ID."
-            exit 1
-          fi
-
-          cp "$PROFILE_PATH" "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
-
-          {
-            echo "PROFILE_UUID=$PROFILE_UUID"
-            echo "PROFILE_NAME=$PROFILE_NAME"
-          } >> "$GITHUB_ENV"
+          echo "API_KEY_PATH=$API_KEY_PATH" >> "$GITHUB_ENV"
 
       - name: Archive signed app
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
         run: |
           set -o pipefail
           xcodebuild \
@@ -112,12 +61,13 @@ jobs:
             -configuration Release \
             -destination "generic/platform=iOS" \
             -archivePath "$RUNNER_TEMP/CVMatchTracker.xcarchive" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$API_KEY_PATH" \
+            -authenticationKeyID "$API_KEY_ID" \
+            -authenticationKeyIssuerID "$API_ISSUER_ID" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
             CURRENT_PROJECT_VERSION="$GITHUB_RUN_NUMBER" \
-            CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
-            PROVISIONING_PROFILE="$PROFILE_UUID" \
-            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" \
+            CODE_SIGN_STYLE=Automatic \
             clean archive
 
       - name: Create export options
@@ -132,14 +82,9 @@ jobs:
             <key>method</key>
             <string>app-store-connect</string>
             <key>signingStyle</key>
-            <string>manual</string>
+            <string>automatic</string>
             <key>teamID</key>
             <string>$APPLE_TEAM_ID</string>
-            <key>provisioningProfiles</key>
-            <dict>
-              <key>$BUNDLE_ID</key>
-              <string>$PROFILE_NAME</string>
-            </dict>
             <key>uploadBitcode</key>
             <false/>
             <key>uploadSymbols</key>
@@ -149,21 +94,20 @@ jobs:
           EOF
 
       - name: Export IPA
+        env:
+          API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
         run: |
           set -o pipefail
           xcodebuild \
             -exportArchive \
             -archivePath "$RUNNER_TEMP/CVMatchTracker.xcarchive" \
             -exportPath "$RUNNER_TEMP/app-store-export" \
-            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist"
-
-      - name: Install App Store Connect API key
-        env:
-          API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          API_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
-        run: |
-          mkdir -p "$HOME/.appstoreconnect/private_keys"
-          printf "%s" "$API_PRIVATE_KEY" > "$HOME/.appstoreconnect/private_keys/AuthKey_${API_KEY_ID}.p8"
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$API_KEY_PATH" \
+            -authenticationKeyID "$API_KEY_ID" \
+            -authenticationKeyIssuerID "$API_ISSUER_ID"
 
       - name: Upload IPA to App Store Connect
         env:
