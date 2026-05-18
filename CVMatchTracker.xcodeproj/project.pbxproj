@@ -12,7 +12,6 @@
 		BF0000000000000000000003 /* DataModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000003 /* DataModels.swift */; };
 		BF0000000000000000000004 /* DemoDataSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000004 /* DemoDataSeeder.swift */; };
 		BF0000000000000000000005 /* UIComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000005 /* UIComponents.swift */; };
-		BF0000000000000000000006 /* PremiumAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000006 /* PremiumAccess.swift */; };
 		BF0000000000000000000007 /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000007 /* Formatters.swift */; };
 		BF0000000000000000000008 /* DocumentImportButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000008 /* DocumentImportButton.swift */; };
 		BF0000000000000000000009 /* PDFPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000009 /* PDFPreview.swift */; };
@@ -37,7 +36,6 @@
 		F10000000000000000000003 /* DataModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataModels.swift; sourceTree = "<group>"; };
 		F10000000000000000000004 /* DemoDataSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoDataSeeder.swift; sourceTree = "<group>"; };
 		F10000000000000000000005 /* UIComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIComponents.swift; sourceTree = "<group>"; };
-		F10000000000000000000006 /* PremiumAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PremiumAccess.swift; sourceTree = "<group>"; };
 		F10000000000000000000007 /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatters.swift; sourceTree = "<group>"; };
 		F10000000000000000000008 /* DocumentImportButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentImportButton.swift; sourceTree = "<group>"; };
 		F10000000000000000000009 /* PDFPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFPreview.swift; sourceTree = "<group>"; };
@@ -184,7 +182,6 @@
 			isa = PBXGroup;
 			children = (
 				F10000000000000000000005 /* UIComponents.swift */,
-				F10000000000000000000006 /* PremiumAccess.swift */,
 				F10000000000000000000007 /* Formatters.swift */,
 				F10000000000000000000008 /* DocumentImportButton.swift */,
 				F10000000000000000000009 /* PDFPreview.swift */,
@@ -276,7 +273,6 @@
 				BF0000000000000000000003 /* DataModels.swift in Sources */,
 				BF0000000000000000000004 /* DemoDataSeeder.swift in Sources */,
 				BF0000000000000000000005 /* UIComponents.swift in Sources */,
-				BF0000000000000000000006 /* PremiumAccess.swift in Sources */,
 				BF0000000000000000000007 /* Formatters.swift in Sources */,
 				BF0000000000000000000008 /* DocumentImportButton.swift in Sources */,
 				BF0000000000000000000009 /* PDFPreview.swift in Sources */,

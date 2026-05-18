@@ -28,7 +28,7 @@ CV Match Tracker does not require an account or server access.
 
 The app works offline and stores data locally on device. Demo data is included on first launch so reviewers can test the Dashboard, Applications, CV Library, Call Match, Reminders and Settings screens immediately.
 
-Premium subscription/payment integration is not active in this build. Premium UI is currently presented as a roadmap for a future release.
+Version 1.0 does not include subscriptions, in-app purchases, external purchase links, or paid account tiers. All included features work offline for individual users.
 ```
 
 ## Build Upload

@@ -19,26 +19,11 @@ struct InterviewPrepView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                if PremiumAccess.isUnlocked {
-                    prepSection("Summary of CV sent", systemImage: "doc.richtext.fill", text: prep.cvSummary)
-                    prepBullets("Key points to mention", systemImage: "quote.bubble.fill", items: prep.keyPoints)
-                    prepBullets("Likely interview questions", systemImage: "questionmark.bubble.fill", items: prep.likelyQuestions)
-                    prepBullets("Gaps between CV and job description", systemImage: "exclamationmark.triangle.fill", items: prep.gaps)
-                    prepSection("Quick notes before the call", systemImage: "phone.fill", text: prep.quickNotes)
-                } else {
-                    PremiumLockView(
-                        title: "Interview prep is coming soon",
-                        message: "A future Premium release will unlock tailored CV summaries, talking points, likely questions, and role gap checks."
-                    )
-
-                    NavigationLink {
-                        SubscriptionView()
-                    } label: {
-                        Label("View Premium Roadmap", systemImage: "sparkles")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent)
-                }
+                prepSection("Summary of CV sent", systemImage: "doc.richtext.fill", text: prep.cvSummary)
+                prepBullets("Key points to mention", systemImage: "quote.bubble.fill", items: prep.keyPoints)
+                prepBullets("Likely interview questions", systemImage: "questionmark.bubble.fill", items: prep.likelyQuestions)
+                prepBullets("Gaps between CV and job description", systemImage: "exclamationmark.triangle.fill", items: prep.gaps)
+                prepSection("Quick notes before the call", systemImage: "phone.fill", text: prep.quickNotes)
             }
             .padding()
         }
@@ -57,7 +42,7 @@ struct InterviewPrepView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(14)
-        .premiumCard()
+        .appCard()
     }
 
     private func prepBullets(_ title: String, systemImage: String, items: [String]) -> some View {
@@ -78,7 +63,7 @@ struct InterviewPrepView: View {
             }
         }
         .padding(14)
-        .premiumCard()
+        .appCard()
     }
 }
 

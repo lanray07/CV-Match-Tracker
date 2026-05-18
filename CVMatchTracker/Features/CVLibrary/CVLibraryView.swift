@@ -6,11 +6,6 @@ struct CVLibraryView: View {
     @Query(sort: \ApplicationRecord.dateApplied, order: .reverse) private var applications: [ApplicationRecord]
 
     @State private var isAddCVPresented = false
-    @State private var isSubscriptionPresented = false
-
-    private var canAddCV: Bool {
-        PremiumAccess.isUnlocked || cvDocuments.count < PremiumLimits.freeCVLimit
-    }
 
     var body: some View {
         Group {
@@ -19,10 +14,6 @@ struct CVLibraryView: View {
             } else {
                 ScrollView {
                     LazyVStack(spacing: 14) {
-                        if !canAddCV {
-                            limitReachedCard
-                        }
-
                         ForEach(cvDocuments) { cv in
                             NavigationLink {
                                 CVDocumentDetailView(cv: cv)
@@ -41,11 +32,7 @@ struct CVLibraryView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    if canAddCV {
-                        isAddCVPresented = true
-                    } else {
-                        isSubscriptionPresented = true
-                    }
+                    isAddCVPresented = true
                 } label: {
                     Label("Add CV", systemImage: "plus")
                 }
@@ -54,11 +41,6 @@ struct CVLibraryView: View {
         .sheet(isPresented: $isAddCVPresented) {
             NavigationStack {
                 AddCVView()
-            }
-        }
-        .sheet(isPresented: $isSubscriptionPresented) {
-            NavigationStack {
-                SubscriptionView()
             }
         }
     }
@@ -80,22 +62,6 @@ struct CVLibraryView: View {
             .buttonStyle(.borderedProminent)
             .padding(.horizontal)
         }
-    }
-
-    private var limitReachedCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Label("Free CV limit reached", systemImage: "lock.fill")
-                .font(.headline)
-            Text("Free users can store \(PremiumLimits.freeCVLimit) CV versions. A future Premium release is planned for unlimited uploads.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            Button("View Roadmap") {
-                isSubscriptionPresented = true
-            }
-            .buttonStyle(.borderedProminent)
-        }
-        .padding(14)
-        .premiumCard()
     }
 
     private func cvCard(_ cv: CVDocument) -> some View {
@@ -143,39 +109,25 @@ struct CVLibraryView: View {
             }
         }
         .padding(14)
-        .premiumCard()
+        .appCard()
     }
 }
 
 struct AddCVView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \CVDocument.createdAt, order: .reverse) private var cvDocuments: [CVDocument]
 
     @State private var name = ""
     @State private var summary = ""
     @State private var importedCV: ImportedDocument?
     @State private var errorMessage: String?
 
-    private var canAddCV: Bool {
-        PremiumAccess.isUnlocked || cvDocuments.count < PremiumLimits.freeCVLimit
-    }
-
     private var canSave: Bool {
-        canAddCV && !name.trimmedForSaving.isEmpty && importedCV != nil
+        !name.trimmedForSaving.isEmpty && importedCV != nil
     }
 
     var body: some View {
         Form {
-            if !canAddCV {
-                Section {
-                    PremiumLockView(
-                        title: "Free CV limit reached",
-                        message: "A future Premium release is planned for unlimited CV versions."
-                    )
-                }
-            }
-
             Section("CV") {
                 TextField("CV version name", text: $name)
                 DocumentImportButton(
@@ -183,7 +135,6 @@ struct AddCVView: View {
                     systemImage: "doc.badge.plus",
                     importedDocument: $importedCV
                 )
-                .disabled(!canAddCV)
             }
 
             Section("Summary") {
@@ -266,7 +217,7 @@ struct CVDocumentDetailView: View {
                         .foregroundStyle(.secondary)
                 }
                 .padding(16)
-                .premiumCard()
+                .appCard()
 
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Summary")
@@ -291,7 +242,7 @@ struct CVDocumentDetailView: View {
                             .foregroundStyle(.secondary)
                             .padding(14)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .premiumCard()
+                            .appCard()
                     } else {
                         ForEach(jobsUsed) { application in
                             NavigationLink {
@@ -318,7 +269,7 @@ struct CVDocumentDetailView: View {
                             .foregroundStyle(.secondary)
                             .padding(14)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .premiumCard()
+                            .appCard()
                     }
                 }
             }
@@ -343,7 +294,7 @@ struct CoverLetterPreviewView: View {
                     symbolName: "doc.text.fill"
                 )
                 .padding(14)
-                .premiumCard()
+                .appCard()
 
                 if let data = coverLetter.fileData, coverLetter.isPDF {
                     PDFPreview(data: data)
@@ -355,7 +306,7 @@ struct CoverLetterPreviewView: View {
                         .foregroundStyle(.secondary)
                         .padding(14)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .premiumCard()
+                        .appCard()
                 }
             }
             .padding()

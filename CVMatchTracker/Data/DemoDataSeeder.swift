@@ -78,7 +78,7 @@ enum DemoDataSeeder {
             jobAdvertURL: "https://example.com/jobs/acme-senior-product-manager",
             dateApplied: appliedDate,
             status: .interviewing,
-            notes: "Recruiter called about product discovery and enterprise onboarding experience.",
+            notes: "Recruiter called about product discovery and customer onboarding experience.",
             jobDescription: """
             Acme Analytics is hiring a Senior Product Manager to own the onboarding and customer insights roadmap for its B2B SaaS platform. The role needs strong discovery, analytics, stakeholder management, experimentation, and go-to-market collaboration.
             """,

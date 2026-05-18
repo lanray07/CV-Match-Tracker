@@ -104,7 +104,7 @@ struct ApplicationDetailView: View {
             .buttonStyle(.borderedProminent)
         }
         .padding(16)
-        .premiumCard()
+        .appCard()
     }
 
     private var documents: some View {
@@ -118,7 +118,7 @@ struct ApplicationDetailView: View {
                     .foregroundStyle(.secondary)
                     .padding(14)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .premiumCard()
+                    .appCard()
             } else {
                 if let cv = application.cvDocument {
                     NavigationLink {
@@ -133,7 +133,7 @@ struct ApplicationDetailView: View {
                     }
                     .buttonStyle(.plain)
                     .padding(14)
-                    .premiumCard()
+                    .appCard()
                 }
 
                 if let coverLetter = application.coverLetter {
@@ -149,7 +149,7 @@ struct ApplicationDetailView: View {
                     }
                     .buttonStyle(.plain)
                     .padding(14)
-                    .premiumCard()
+                    .appCard()
                 }
             }
         }
@@ -175,14 +175,14 @@ struct ApplicationDetailView: View {
                 .font(.subheadline)
                 .padding(14)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .premiumCard()
+                .appCard()
             } else {
                 Text("No recruiter details saved.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .padding(14)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .premiumCard()
+                    .appCard()
             }
         }
     }
@@ -197,7 +197,7 @@ struct ApplicationDetailView: View {
                 .foregroundStyle(application.jobDescription.isEmpty ? .secondary : .primary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(14)
-                .premiumCard()
+                .appCard()
         }
     }
 
@@ -227,7 +227,7 @@ struct ApplicationDetailView: View {
                     .foregroundStyle(.secondary)
                     .padding(14)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .premiumCard()
+                    .appCard()
             } else {
                 VStack(spacing: 12) {
                     ForEach(application.sortedTimelineEvents) { event in
@@ -235,7 +235,7 @@ struct ApplicationDetailView: View {
                     }
                 }
                 .padding(14)
-                .premiumCard()
+                .appCard()
             }
         }
     }

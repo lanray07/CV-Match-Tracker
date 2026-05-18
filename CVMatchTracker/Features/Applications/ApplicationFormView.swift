@@ -5,7 +5,6 @@ struct ApplicationFormView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
 
-    @Query(sort: \ApplicationRecord.dateApplied, order: .reverse) private var applications: [ApplicationRecord]
     @Query(sort: \CVDocument.createdAt, order: .reverse) private var cvDocuments: [CVDocument]
     @Query(sort: \CoverLetterDocument.createdAt, order: .reverse) private var coverLetters: [CoverLetterDocument]
 
@@ -31,25 +30,8 @@ struct ApplicationFormView: View {
         !companyName.trimmedForSaving.isEmpty && !jobTitle.trimmedForSaving.isEmpty
     }
 
-    private var canCreateApplication: Bool {
-        PremiumAccess.isUnlocked || applications.count < PremiumLimits.freeApplicationLimit
-    }
-
-    private var canImportNewCV: Bool {
-        PremiumAccess.isUnlocked || cvDocuments.count < PremiumLimits.freeCVLimit
-    }
-
     var body: some View {
         Form {
-            if !canCreateApplication {
-                Section {
-                    PremiumLockView(
-                        title: "Free application limit reached",
-                        message: "Free users can track \(PremiumLimits.freeApplicationLimit) applications in version 1.0."
-                    )
-                }
-            }
-
             Section("Role") {
                 TextField("Company name", text: $companyName)
                     .textContentType(.organizationName)
@@ -93,13 +75,6 @@ struct ApplicationFormView: View {
                     systemImage: "doc.badge.plus",
                     importedDocument: $importedCV
                 )
-                .disabled(!canImportNewCV)
-
-                if !canImportNewCV {
-                    Text("Free users can store \(PremiumLimits.freeCVLimit) CV versions. Select an existing CV or use the future Premium roadmap for unlimited uploads.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
 
                 Picker("Cover letter", selection: $selectedCoverLetterID) {
                     Text("No existing cover letter").tag(Optional<UUID>.none)
@@ -155,23 +130,13 @@ struct ApplicationFormView: View {
                 Button("Save") {
                     save()
                 }
-                .disabled(!canSave || !canCreateApplication)
+                .disabled(!canSave)
             }
         }
     }
 
     private func save() {
         errorMessage = nil
-
-        guard canCreateApplication else {
-            errorMessage = "The free version can track up to \(PremiumLimits.freeApplicationLimit) applications."
-            return
-        }
-
-        guard canImportNewCV || importedCV == nil else {
-            errorMessage = "Select an existing CV or wait for a future Premium release to upload more CV versions."
-            return
-        }
 
         let selectedCV = selectedCVID.flatMap { id in cvDocuments.first { $0.id == id } }
         let selectedCoverLetter = selectedCoverLetterID.flatMap { id in coverLetters.first { $0.id == id } }

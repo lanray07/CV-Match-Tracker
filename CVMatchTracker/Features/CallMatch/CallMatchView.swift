@@ -78,14 +78,14 @@ struct CallMatchView: View {
                         message: "Type any caller detail and matching applications will appear instantly.",
                         symbolName: "phone.badge.waveform"
                     )
-                    .premiumCard()
+                    .appCard()
                 } else if matches.isEmpty {
                     EmptyStateView(
                         title: "No match found",
                         message: "Try searching a partial company name, recruiter surname, or the last few phone digits.",
                         symbolName: "magnifyingglass"
                     )
-                    .premiumCard()
+                    .appCard()
                 } else {
                     ForEach(matches) { application in
                         NavigationLink {
@@ -173,7 +173,7 @@ private struct CallMatchResultCard: View {
             }
         }
         .padding(16)
-        .premiumCard()
+        .appCard()
     }
 }
 

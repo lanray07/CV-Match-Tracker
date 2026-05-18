@@ -47,7 +47,7 @@ struct StatCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(14)
-        .premiumCard()
+        .appCard()
     }
 }
 
@@ -110,7 +110,7 @@ struct ApplicationRow: View {
             .lineLimit(1)
         }
         .padding(14)
-        .premiumCard()
+        .appCard()
     }
 }
 
@@ -184,7 +184,7 @@ struct TimelineEventRow: View {
 }
 
 extension View {
-    func premiumCard() -> some View {
+    func appCard() -> some View {
         background(
             RoundedRectangle(cornerRadius: 8)
                 .fill(Color(.secondarySystemGroupedBackground))

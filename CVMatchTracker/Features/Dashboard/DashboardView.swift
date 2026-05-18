@@ -7,11 +7,6 @@ struct DashboardView: View {
 
     @State private var searchText = ""
     @State private var isAddApplicationPresented = false
-    @State private var isSubscriptionPresented = false
-
-    private var canAddApplication: Bool {
-        PremiumAccess.isUnlocked || applications.count < PremiumLimits.freeApplicationLimit
-    }
 
     private var upcomingReminders: [Reminder] {
         reminders
@@ -73,11 +68,7 @@ struct DashboardView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    if canAddApplication {
-                        isAddApplicationPresented = true
-                    } else {
-                        isSubscriptionPresented = true
-                    }
+                    isAddApplicationPresented = true
                 } label: {
                     Label("Add application", systemImage: "plus")
                 }
@@ -86,11 +77,6 @@ struct DashboardView: View {
         .sheet(isPresented: $isAddApplicationPresented) {
             NavigationStack {
                 ApplicationFormView()
-            }
-        }
-        .sheet(isPresented: $isSubscriptionPresented) {
-            NavigationStack {
-                SubscriptionView()
             }
         }
     }
@@ -159,7 +145,7 @@ struct DashboardView: View {
                     message: "Add follow-up, interview, and response deadline reminders from an application detail screen.",
                     symbolName: "checkmark.circle"
                 )
-                .premiumCard()
+                .appCard()
             } else {
                 ForEach(upcomingReminders) { reminder in
                     if let application = applications.first(where: { $0.id == reminder.applicationID }) {
@@ -212,6 +198,6 @@ private struct ReminderCard: View {
                 .foregroundStyle(.tertiary)
         }
         .padding(14)
-        .premiumCard()
+        .appCard()
     }
 }

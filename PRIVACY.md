@@ -6,4 +6,4 @@ Version 1.0 does not require an account, does not use analytics, does not track 
 
 Local notifications may be used for reminders that you create in the app. Uploaded documents remain in the app's local storage on your device.
 
-Future versions may add optional iCloud sync or paid features. This privacy policy will be updated before any data collection or sync feature is released.
+Future versions may add optional iCloud sync. This privacy policy will be updated before any data collection or sync feature is released.

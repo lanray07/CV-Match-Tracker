@@ -7,11 +7,6 @@ struct ApplicationsView: View {
     @State private var searchText = ""
     @State private var statusFilter = "All"
     @State private var isAddApplicationPresented = false
-    @State private var isSubscriptionPresented = false
-
-    private var canAddApplication: Bool {
-        PremiumAccess.isUnlocked || applications.count < PremiumLimits.freeApplicationLimit
-    }
 
     private var filteredApplications: [ApplicationRecord] {
         applications.filter { application in
@@ -32,14 +27,6 @@ struct ApplicationsView: View {
                 emptyState
             } else {
                 List {
-                    if !canAddApplication {
-                        Section {
-                            limitReachedCard
-                        }
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                    }
-
                     Section {
                         ForEach(filteredApplications) { application in
                             NavigationLink {
@@ -70,11 +57,7 @@ struct ApplicationsView: View {
 
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    if canAddApplication {
-                        isAddApplicationPresented = true
-                    } else {
-                        isSubscriptionPresented = true
-                    }
+                    isAddApplicationPresented = true
                 } label: {
                     Label("Add application", systemImage: "plus")
                 }
@@ -83,11 +66,6 @@ struct ApplicationsView: View {
         .sheet(isPresented: $isAddApplicationPresented) {
             NavigationStack {
                 ApplicationFormView()
-            }
-        }
-        .sheet(isPresented: $isSubscriptionPresented) {
-            NavigationStack {
-                SubscriptionView()
             }
         }
     }
@@ -111,21 +89,6 @@ struct ApplicationsView: View {
         }
     }
 
-    private var limitReachedCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Label("Free limit reached", systemImage: "lock.fill")
-                .font(.headline)
-            Text("Free users can track \(PremiumLimits.freeApplicationLimit) applications. A future Premium release is planned for unlimited tracking.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            Button("View Roadmap") {
-                isSubscriptionPresented = true
-            }
-            .buttonStyle(.borderedProminent)
-        }
-        .padding(14)
-        .premiumCard()
-    }
 }
 
 private struct ApplicationListRow: View {
